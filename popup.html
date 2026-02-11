@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tab Rotator Settings</title>
+    <style>
+        body { width: 220px; font-family: 'Segoe UI', Tahoma, sans-serif; padding: 15px; background: #f9f9f9; }
+        h2 { font-size: 16px; margin-top: 0; color: #333; }
+        .field { margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        input[type="number"] { width: 60px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; }
+        button { width: 100%; padding: 8px; background: #4285f4; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #357abd; }
+        .hint { font-size: 11px; color: #666; margin-top: 8px; text-align: center; }
+    </style>
+</head>
+<body>
+<h2>Tab Rotator Settings</h2>
+<div class="field">
+    <label for="enabled">Enable Rotation:</label>
+    <input type="checkbox" id="enabled">
+</div>
+<div class="field">
+    <label for="fullscreen">Fullscreen Mode:</label>
+    <input type="checkbox" id="fullscreen">
+</div>
+<div class="field">
+    <label for="delay">Delay (15-300s):</label>
+    <input type="number" id="delay" min="15" max="300" value="30">
+</div>
+<button id="save">Save & Apply</button>
+<p class="hint">Activity resets the 30s timer.</p>
+<script src="popup.js"></script>
+</body>
+</html>

@@ -1,49 +1,93 @@
+let lastActivity = Date.now();
 let config = { enabled: true, delay: 30, fullscreen: false };
+let rotationCount = 0; // Track number of rotations
 
-// Function to handle Fullscreen toggle
-async function handleWindowState(enabled, useFullscreen) {
-    const window = await chrome.windows.getCurrent();
-    const newState = (enabled && useFullscreen) ? "fullscreen" : "normal";
+// Initial Config Load
+chrome.storage.local.get(['enabled', 'delay', 'fullscreen'], (data) => {
+    Object.assign(config, data);
+    updateBadge();
+});
 
-    if (window.state !== newState) {
-        chrome.windows.update(window.id, { state: newState });
+// Update settings in real-time
+chrome.storage.onChanged.addListener((changes) => {
+    for (let key in changes) {
+        config[key] = changes[key].newValue;
+    }
+    updateBadge();
+    handleWindowState();
+});
+
+// Activity message from content scripts
+chrome.runtime.onMessage.addListener((msg) => {
+    if (msg.type === "USER_ACTIVITY") lastActivity = Date.now();
+});
+
+// Global Idle detection backup
+chrome.idle.setDetectionInterval(15);
+chrome.idle.onStateChanged.addListener((state) => {
+    if (state === "active") lastActivity = Date.now();
+});
+
+async function handleWindowState() {
+    const win = await chrome.windows.getCurrent();
+    const targetState = (config.enabled && config.fullscreen) ? "fullscreen" : "normal";
+    if (win.state !== targetState) {
+        chrome.windows.update(win.id, { state: targetState });
     }
 }
 
-// Watch for setting changes
-chrome.storage.onChanged.addListener((changes) => {
-    if (changes.enabled) config.enabled = changes.enabled.newValue;
-    if (changes.delay) config.delay = changes.delay.newValue;
-    if (changes.fullscreen) config.fullscreen = changes.fullscreen.newValue;
+function updateBadge() {
+    const text = config.enabled ? "ON" : "OFF";
+    chrome.action.setBadgeText({ text });
+    chrome.action.setBadgeBackgroundColor({ color: config.enabled ? "#4CAF50" : "#F44336" });
+}
 
-    // Apply fullscreen logic immediately when settings change
-    handleWindowState(config.enabled, config.fullscreen);
-});
-
-// In your existing setInterval loop, ensure the window stays fullscreen
-// (in case the user manually exits fullscreen but the extension is still "ON")
+// Main Logic Loop
 setInterval(async () => {
     if (!config.enabled) return;
 
     const now = Date.now();
-    const state = await new Promise(resolve => chrome.idle.queryState(15, resolve));
+    const safeDelay = Math.min(Math.max(config.delay, 15), 300);
+    const delayMs = safeDelay * 1000;
 
-    if (state !== "active" && (now - lastActivity >= config.delay * 1000)) {
-        // If fullscreen is set but user escaped it, put it back
+    const idleState = await new Promise(res => chrome.idle.queryState(15, res));
+
+    if (idleState === "active" || (now - lastActivity) < delayMs) {
+        return;
+    }
+
+    const tabs = await chrome.tabs.query({ currentWindow: true, windowType: 'normal' });
+    if (tabs.length <= 1) return;
+
+    const activeTabIndex = tabs.findIndex(t => t.active);
+    if (activeTabIndex === -1) return;
+
+    const nextIndex = (activeTabIndex + 1) % tabs.length;
+    const nextTab = tabs[nextIndex];
+
+    try {
+        // Increment rotation count
+        rotationCount++;
+
+        // Switch to the next tab
+        await chrome.tabs.update(nextTab.id, { active: true });
+
+        // Check if it's the 5th rotation
+        if (rotationCount >= 5) {
+            await chrome.tabs.reload(nextTab.id);
+            rotationCount = 0; // Reset counter
+            console.log("5th rotation reached: Page refreshed.");
+        }
+
         if (config.fullscreen) {
             const win = await chrome.windows.getCurrent();
             if (win.state !== "fullscreen") {
-                chrome.windows.update(win.id, { state: "fullscreen" });
+                await chrome.windows.update(win.id, { state: "fullscreen" });
             }
         }
-
-        const tabs = await chrome.tabs.query({ currentWindow: true, windowType: 'normal' });
-        if (tabs.length <= 1) return;
-
-        const activeTab = tabs.find(t => t.active);
-        const nextIndex = (activeTab.index + 1) % tabs.length;
-
-        await chrome.tabs.update(tabs[nextIndex].id, { active: true });
-        lastActivity = Date.now();
+    } catch (err) {
+        console.error("Rotation error:", err);
     }
+
+    lastActivity = Date.now();
 }, 1000);
