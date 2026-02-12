@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy — Kiosk Tab Rotator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+            line-height: 1.7;
+            color: #333;
+            background: #fafafa;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 8px;
+            padding: 48px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            color: #111;
+        }
+        .last-updated {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 32px;
+        }
+        h2 {
+            font-size: 20px;
+            margin-top: 32px;
+            margin-bottom: 12px;
+            color: #222;
+        }
+        p, li {
+            font-size: 15px;
+            margin-bottom: 12px;
+        }
+        ul {
+            padding-left: 24px;
+            margin-bottom: 16px;
+        }
+        li { margin-bottom: 6px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0 24px;
+        }
+        th, td {
+            text-align: left;
+            padding: 10px 14px;
+            border: 1px solid #e0e0e0;
+            font-size: 14px;
+        }
+        th {
+            background: #f5f5f5;
+            font-weight: 600;
+        }
+        .highlight {
+            background: #e8f5e9;
+            border-left: 4px solid #4CAF50;
+            padding: 16px 20px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        a { color: #4285f4; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Privacy Policy</h1>
+    <p class="last-updated">Last updated: February 12, 2026</p>
+
+    <div class="highlight">
+        <strong>In short:</strong> Kiosk Tab Rotator does not collect, store, or transmit any personal data. Everything stays on your device.
+    </div>
+
+    <h2>About This Extension</h2>
+    <p>
+        Kiosk Tab Rotator is a Chrome browser extension that automatically cycles through your
+        open tabs after a period of user inactivity. It is designed for dashboards, kiosks,
+        digital signage, and similar unattended display use cases.
+    </p>
+
+    <h2>Data Collection</h2>
+    <p>This extension collects <strong>no personal data whatsoever</strong>. Specifically:</p>
+    <ul>
+        <li>No browsing history is collected or transmitted</li>
+        <li>No personally identifiable information (PII) is accessed</li>
+        <li>No analytics, telemetry, or usage tracking is performed</li>
+        <li>No cookies are read or written by the extension</li>
+        <li>No data is sent to any external server or third party</li>
+    </ul>
+
+    <h2>Data Storage</h2>
+    <p>
+        The extension stores only three user-configured settings using Chrome's local storage API
+        (<code>chrome.storage.local</code>):
+    </p>
+    <table>
+        <thead>
+        <tr>
+            <th>Setting</th>
+            <th>Type</th>
+            <th>Purpose</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>enabled</td>
+            <td>Boolean</td>
+            <td>Whether tab rotation is active</td>
+        </tr>
+        <tr>
+            <td>delay</td>
+            <td>Number (15–300)</td>
+            <td>Seconds of inactivity before rotating</td>
+        </tr>
+        <tr>
+            <td>fullscreen</td>
+            <td>Boolean</td>
+            <td>Whether to enter fullscreen mode</td>
+        </tr>
+        </tbody>
+    </table>
+    <p>
+        This data is stored entirely on your local device and is never transmitted anywhere.
+        You can clear it at any time by removing the extension.
+    </p>
+
+    <h2>Permissions Explained</h2>
+    <p>The extension requests the following permissions solely for its core functionality:</p>
+    <table>
+        <thead>
+        <tr>
+            <th>Permission</th>
+            <th>Why It's Needed</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td><code>tabs</code></td>
+            <td>To list open tabs and switch the active tab during rotation</td>
+        </tr>
+        <tr>
+            <td><code>storage</code></td>
+            <td>To save your settings locally between browser sessions</td>
+        </tr>
+        <tr>
+            <td><code>idle</code></td>
+            <td>To detect system-level idle state and only rotate when you're away</td>
+        </tr>
+        <tr>
+            <td><code>scripting</code></td>
+            <td>To detect mouse, keyboard, and touch activity on web pages</td>
+        </tr>
+        <tr>
+            <td>Host permissions (<code>&lt;all_urls&gt;</code>)</td>
+            <td>So activity detection works on every page you have open, regardless of domain</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <h2>Network Requests</h2>
+    <p>
+        Kiosk Tab Rotator makes <strong>zero network requests</strong>. It does not communicate
+        with any external servers, APIs, or services. All functionality runs entirely within
+        your browser.
+    </p>
+
+    <h2>Third-Party Services</h2>
+    <p>This extension does not integrate with or send data to any third-party services.</p>
+
+    <h2>Children's Privacy</h2>
+    <p>
+        This extension does not knowingly collect any information from children under the age
+        of 13. Since no data is collected from any user, this concern does not apply.
+    </p>
+
+    <h2>Changes to This Policy</h2>
+    <p>
+        If this privacy policy is updated, the changes will be reflected on this page with an
+        updated "Last updated" date. Continued use of the extension after changes constitutes
+        acceptance of the revised policy.
+    </p>
+
+    <h2>Contact</h2>
+    <p>
+        If you have questions about this privacy policy or the extension, please open an issue
+        on the project's GitHub repository.
+    </p>
+</div>
+</body>
+</html>

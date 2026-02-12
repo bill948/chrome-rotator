@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Kiosk Tab Rotator — Asset Generator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 32px;
+        }
+        h1 { margin: 0 0 8px; font-size: 24px; }
+        p.sub { color: #aaa; margin: 0 0 24px; }
+        .asset-group {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 24px;
+            width: 100%;
+            max-width: 800px;
+        }
+        .asset-group h2 {
+            margin: 0 0 12px;
+            font-size: 18px;
+            color: #64ffda;
+        }
+        .asset-group .info {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 16px;
+        }
+        canvas {
+            border: 1px solid #333;
+            border-radius: 6px;
+            display: block;
+            margin-bottom: 12px;
+        }
+        .icon-row {
+            display: flex;
+            align-items: end;
+            gap: 24px;
+        }
+        .icon-item { text-align: center; }
+        .icon-item span { display: block; margin-top: 6px; font-size: 12px; color: #888; }
+        button {
+            background: #4285f4;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        button:hover { background: #357abd; }
+        .btn-row { display: flex; gap: 12px; flex-wrap: wrap; }
+    </style>
+</head>
+<body>
+
+<h1>Kiosk Tab Rotator — Asset Generator</h1>
+<p class="sub">Open this file in Chrome, then click the download buttons to save each asset as PNG.</p>
+
+<!-- Small Promo Tile 440x280 -->
+<div class="asset-group">
+    <h2>Small Promotional Tile</h2>
+    <div class="info">440 x 280 px — Required for Chrome Web Store featured placement</div>
+    <canvas id="promo-small" width="440" height="280"></canvas>
+    <button onclick="download('promo-small', 'promo-tile-440x280.png')">Download 440x280 PNG</button>
+</div>
+
+<!-- Marquee Promo Tile 1400x560 -->
+<div class="asset-group">
+    <h2>Marquee Promotional Tile</h2>
+    <div class="info">1400 x 560 px — Optional, used for marquee banner placement</div>
+    <canvas id="promo-marquee" width="1400" height="560"></canvas>
+    <div class="btn-row">
+        <button onclick="download('promo-marquee', 'promo-marquee-1400x560.png')">Download 1400x560 PNG</button>
+    </div>
+</div>
+
+<!-- Icons -->
+<div class="asset-group">
+    <h2>Extension Icons</h2>
+    <div class="info">Required sizes for manifest.json and store listing</div>
+    <div class="icon-row">
+        <div class="icon-item">
+            <canvas id="icon-128" width="128" height="128"></canvas>
+            <span>128x128</span>
+        </div>
+        <div class="icon-item">
+            <canvas id="icon-48" width="48" height="48"></canvas>
+            <span>48x48</span>
+        </div>
+        <div class="icon-item">
+            <canvas id="icon-16" width="16" height="16"></canvas>
+            <span>16x16</span>
+        </div>
+    </div>
+    <div class="btn-row" style="margin-top: 16px;">
+        <button onclick="download('icon-48', 'icon_48.png')">Download 48px</button>
+        <button onclick="download('icon-16', 'icon_16.png')">Download 16px</button>
+    </div>
+</div>
+
+<script>
+// ── Color palette ──
+const COLORS = {
+    bgDark:    '#0f172a',
+    bgCard:    '#1e293b',
+    accent:    '#4285f4',
+    accentAlt: '#34d399',
+    green:     '#4CAF50',
+    text:      '#f1f5f9',
+    textDim:   '#94a3b8',
+    white:     '#ffffff',
+};
+
+// ── Load the 128px icon, then render everything ──
+const iconImg = new Image();
+iconImg.onload = () => {
+    drawSmallPromo();
+    drawMarqueePromo();
+    drawIcons();
+};
+iconImg.onerror = () => {
+    // If icon can't load, draw without it
+    drawSmallPromo();
+    drawMarqueePromo();
+    drawIcons();
+};
+iconImg.src = 'kiosk_icon_128.png';
+
+// ── Helpers ──
+function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+}
+
+function drawTabBar(ctx, x, y, w, tabW, tabH, activeIdx, count) {
+    for (let i = 0; i < count; i++) {
+        const tx = x + i * (tabW + 4);
+        const isActive = i === activeIdx;
+        roundRect(ctx, tx, y, tabW, tabH, 4);
+        ctx.fillStyle = isActive ? COLORS.accent : '#334155';
+        ctx.fill();
+        // Tab label line
+        ctx.fillStyle = isActive ? '#fff' : '#64748b';
+        const lineW = tabW * 0.6;
+        ctx.fillRect(tx + (tabW - lineW) / 2, y + tabH / 2 - 1, lineW, 2);
+    }
+}
+
+function drawRotationArrow(ctx, cx, cy, radius, lineWidth, color) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineWidth;
+    ctx.lineCap = 'round';
+    // Arc (270 degrees)
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, -Math.PI * 0.6, Math.PI * 1.1);
+    ctx.stroke();
+    // Arrowhead
+    const angle = Math.PI * 1.1;
+    const ax = cx + Math.cos(angle) * radius;
+    const ay = cy + Math.sin(angle) * radius;
+    const arrowLen = lineWidth * 3;
+    ctx.beginPath();
+    ctx.moveTo(ax + Math.cos(angle + 0.5) * arrowLen, ay + Math.sin(angle + 0.5) * arrowLen);
+    ctx.lineTo(ax, ay);
+    ctx.lineTo(ax + Math.cos(angle - 1.0) * arrowLen, ay + Math.sin(angle - 1.0) * arrowLen);
+    ctx.stroke();
+}
+
+function drawBadge(ctx, x, y, size, text, bgColor) {
+    roundRect(ctx, x, y, size * 2.2, size, size * 0.25);
+    ctx.fillStyle = bgColor;
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = `bold ${size * 0.55}px 'Segoe UI', sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, x + size * 1.1, y + size * 0.52);
+}
+
+// ── Small Promo Tile (440x280) ──
+function drawSmallPromo() {
+    const c = document.getElementById('promo-small');
+    const ctx = c.getContext('2d');
+    const W = 440, H = 280;
+
+    // Background gradient
+    const bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0, '#0f172a');
+    bg.addColorStop(1, '#1e293b');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    // Subtle grid dots
+    ctx.fillStyle = 'rgba(100, 116, 139, 0.12)';
+    for (let gx = 20; gx < W; gx += 24) {
+        for (let gy = 20; gy < H; gy += 24) {
+            ctx.beginPath();
+            ctx.arc(gx, gy, 1, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    // Icon
+    const iconSize = 72;
+    const iconX = 36;
+    const iconY = 60;
+    if (iconImg.complete && iconImg.naturalWidth > 0) {
+        // Circular clipped icon with glow
+        ctx.save();
+        ctx.shadowColor = 'rgba(66, 133, 244, 0.3)';
+        ctx.shadowBlur = 20;
+        ctx.beginPath();
+        ctx.arc(iconX + iconSize / 2, iconY + iconSize / 2, iconSize / 2, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.clip();
+        ctx.drawImage(iconImg, iconX, iconY, iconSize, iconSize);
+        ctx.restore();
+    }
+
+    // Rotation arrow around icon
+    drawRotationArrow(ctx, iconX + iconSize / 2, iconY + iconSize / 2, iconSize / 2 + 10, 2.5, 'rgba(52, 211, 153, 0.6)');
+
+    // Title
+    ctx.fillStyle = COLORS.white;
+    ctx.font = 'bold 26px "Segoe UI", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText('Kiosk Tab Rotator', 130, 62);
+
+    // Tagline
+    ctx.fillStyle = COLORS.textDim;
+    ctx.font = '14px "Segoe UI", sans-serif';
+    ctx.fillText('Auto-rotate tabs when idle.', 130, 96);
+    ctx.fillText('Perfect for dashboards & signage.', 130, 114);
+
+    // Tab bar illustration
+    const tabY = 164;
+    drawTabBar(ctx, 36, tabY, 368, 56, 22, 2, 6);
+
+    // Arrow showing rotation direction
+    ctx.strokeStyle = COLORS.accentAlt;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(36 + 2 * 60 + 28, tabY + 28);
+    ctx.lineTo(36 + 3 * 60 + 28, tabY + 28);
+    ctx.stroke();
+    // Arrowhead
+    ctx.beginPath();
+    ctx.moveTo(36 + 3 * 60 + 20, tabY + 24);
+    ctx.lineTo(36 + 3 * 60 + 28, tabY + 28);
+    ctx.lineTo(36 + 3 * 60 + 20, tabY + 32);
+    ctx.stroke();
+
+    // ON badge
+    drawBadge(ctx, 36, tabY + 44, 20, 'ON', COLORS.green);
+
+    // Feature pills
+    const pills = ['Activity Detection', 'Fullscreen Mode', 'Auto Refresh'];
+    let px = 100;
+    const pillY = tabY + 44;
+    ctx.font = '11px "Segoe UI", sans-serif';
+    ctx.textAlign = 'center';
+    pills.forEach(label => {
+        const tw = ctx.measureText(label).width + 20;
+        roundRect(ctx, px, pillY, tw, 22, 11);
+        ctx.fillStyle = 'rgba(66, 133, 244, 0.15)';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(66, 133, 244, 0.4)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.fillStyle = '#93c5fd';
+        ctx.fillText(label, px + tw / 2, pillY + 12);
+        px += tw + 8;
+    });
+
+    // Bottom accent line
+    const accent = ctx.createLinearGradient(0, H - 3, W, H - 3);
+    accent.addColorStop(0, COLORS.accent);
+    accent.addColorStop(0.5, COLORS.accentAlt);
+    accent.addColorStop(1, COLORS.accent);
+    ctx.fillStyle = accent;
+    ctx.fillRect(0, H - 3, W, 3);
+}
+
+// ── Marquee Promo Tile (1400x560) ──
+function drawMarqueePromo() {
+    const c = document.getElementById('promo-marquee');
+    const ctx = c.getContext('2d');
+    const W = 1400, H = 560;
+
+    // Background gradient
+    const bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0, '#0f172a');
+    bg.addColorStop(0.5, '#1e293b');
+    bg.addColorStop(1, '#0f172a');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    // Grid dots
+    ctx.fillStyle = 'rgba(100, 116, 139, 0.08)';
+    for (let gx = 20; gx < W; gx += 30) {
+        for (let gy = 20; gy < H; gy += 30) {
+            ctx.beginPath();
+            ctx.arc(gx, gy, 1.2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    // Left section: Icon with rotation arrow
+    const iconSize = 140;
+    const iconX = 120;
+    const iconY = H / 2 - iconSize / 2;
+    if (iconImg.complete && iconImg.naturalWidth > 0) {
+        ctx.save();
+        ctx.shadowColor = 'rgba(66, 133, 244, 0.35)';
+        ctx.shadowBlur = 40;
+        ctx.beginPath();
+        ctx.arc(iconX + iconSize / 2, iconY + iconSize / 2, iconSize / 2, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.clip();
+        ctx.drawImage(iconImg, iconX, iconY, iconSize, iconSize);
+        ctx.restore();
+    }
+    drawRotationArrow(ctx, iconX + iconSize / 2, iconY + iconSize / 2, iconSize / 2 + 18, 3.5, 'rgba(52, 211, 153, 0.5)');
+
+    // Center section: Text
+    const textX = 340;
+    ctx.fillStyle = COLORS.white;
+    ctx.font = 'bold 48px "Segoe UI", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText('Kiosk Tab Rotator', textX, 140);
+
+    ctx.fillStyle = COLORS.textDim;
+    ctx.font = '22px "Segoe UI", sans-serif';
+    ctx.fillText('Automatically rotate through your open tabs when idle.', textX, 200);
+    ctx.fillText('Perfect for dashboards, kiosks, and digital signage.', textX, 232);
+
+    // Feature boxes
+    const features = [
+        { icon: '\u23F1', label: 'Smart Idle Detection', desc: '15-300s configurable delay' },
+        { icon: '\u26F6', label: 'Fullscreen Mode', desc: 'Clean kiosk display' },
+        { icon: '\u21BB', label: 'Auto Refresh', desc: 'Keeps data up to date' },
+        { icon: '\u2714', label: 'Activity Aware', desc: 'Pauses when you interact' },
+    ];
+
+    const boxW = 210;
+    const boxH = 80;
+    const boxGap = 16;
+    const boxStartX = textX;
+    const boxY = 300;
+
+    features.forEach((feat, i) => {
+        const bx = boxStartX + i * (boxW + boxGap);
+        roundRect(ctx, bx, boxY, boxW, boxH, 8);
+        ctx.fillStyle = 'rgba(30, 41, 59, 0.8)';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(66, 133, 244, 0.25)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.font = '22px "Segoe UI", sans-serif';
+        ctx.fillStyle = COLORS.accentAlt;
+        ctx.textAlign = 'left';
+        ctx.fillText(feat.icon, bx + 14, boxY + 28);
+
+        ctx.font = 'bold 14px "Segoe UI", sans-serif';
+        ctx.fillStyle = COLORS.white;
+        ctx.fillText(feat.label, bx + 44, boxY + 28);
+
+        ctx.font = '12px "Segoe UI", sans-serif';
+        ctx.fillStyle = COLORS.textDim;
+        ctx.fillText(feat.desc, bx + 44, boxY + 52);
+    });
+
+    // Tab bar at bottom
+    const tabY = 420;
+    drawTabBar(ctx, textX, tabY, 890, 100, 28, 3, 8);
+
+    // ON badge
+    drawBadge(ctx, textX, tabY + 44, 24, 'ON', COLORS.green);
+
+    // Version pill
+    ctx.font = '13px "Segoe UI", sans-serif';
+    ctx.textAlign = 'left';
+    roundRect(ctx, textX + 70, tabY + 46, 60, 20, 10);
+    ctx.fillStyle = 'rgba(66, 133, 244, 0.15)';
+    ctx.fill();
+    ctx.fillStyle = '#93c5fd';
+    ctx.textAlign = 'center';
+    ctx.fillText('v1.0.0', textX + 100, tabY + 57);
+
+    // "Free & Private" text
+    ctx.font = '13px "Segoe UI", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = COLORS.textDim;
+    ctx.fillText('Free & Private — No data collection, no network requests', textX + 150, tabY + 57);
+
+    // Bottom accent line
+    const accent = ctx.createLinearGradient(0, H - 4, W, H - 4);
+    accent.addColorStop(0, COLORS.accent);
+    accent.addColorStop(0.5, COLORS.accentAlt);
+    accent.addColorStop(1, COLORS.accent);
+    ctx.fillStyle = accent;
+    ctx.fillRect(0, H - 4, W, 4);
+}
+
+// ── Icons ──
+function drawIcons() {
+    [128, 48, 16].forEach(size => {
+        const c = document.getElementById('icon-' + size);
+        const ctx = c.getContext('2d');
+        if (iconImg.complete && iconImg.naturalWidth > 0) {
+            ctx.drawImage(iconImg, 0, 0, size, size);
+        } else {
+            // Fallback: draw a simple colored circle with "K"
+            const r = size / 2;
+            ctx.beginPath();
+            ctx.arc(r, r, r, 0, Math.PI * 2);
+            ctx.fillStyle = COLORS.accent;
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.font = `bold ${size * 0.5}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('K', r, r);
+        }
+    });
+}
+
+// ── Download helper ──
+function download(canvasId, filename) {
+    const c = document.getElementById(canvasId);
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = c.toDataURL('image/png');
+    link.click();
+}
+</script>
+
+</body>
+</html>
