@@ -1,6 +1,7 @@
 let lastNotified = 0;
 
 const notifyActivity = () => {
+    if (!chrome.runtime?.id) return; // Extension context invalidated
     const now = Date.now();
     if (now - lastNotified < 5000) return;
     lastNotified = now;
