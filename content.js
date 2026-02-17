@@ -1,5 +1,10 @@
+let lastNotified = 0;
+
 const notifyActivity = () => {
-    chrome.runtime.sendMessage({ type: "USER_ACTIVITY" });
+    const now = Date.now();
+    if (now - lastNotified < 5000) return;
+    lastNotified = now;
+    chrome.runtime.sendMessage({ type: "USER_ACTIVITY" }).catch(() => {});
 };
 
 // Listen for mouse movement, clicks, or typing
