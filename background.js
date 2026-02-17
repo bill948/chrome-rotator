@@ -22,6 +22,18 @@ chrome.runtime.onMessage.addListener((msg) => {
     if (msg.type === "USER_ACTIVITY") lastActivity = Date.now();
 });
 
+// Periodically sync fullscreen setting with actual window state
+setInterval(async () => {
+    if (!config.fullscreen) return;
+    try {
+        const win = await chrome.windows.getCurrent();
+        if (win.state !== "fullscreen") {
+            config.fullscreen = false;
+            chrome.storage.local.set({ fullscreen: false });
+        }
+    } catch (e) {}
+}, 2000);
+
 // Global Idle detection backup
 chrome.idle.setDetectionInterval(15);
 chrome.idle.onStateChanged.addListener((state) => {
