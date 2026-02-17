@@ -62,8 +62,7 @@ User idle for [delay] seconds
 | `tabs` | Query and switch active tabs |
 | `storage` | Persist settings locally |
 | `idle` | Detect system-level idle state |
-| `scripting` | Inject activity detection into pages |
-| `<all_urls>` | Activity detection works on any domain |
+| `activeTab` | Interact with the currently active tab |
 
 No data is collected or transmitted. All settings are stored locally via `chrome.storage.local`.
 

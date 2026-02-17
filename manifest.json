@@ -3,8 +3,7 @@
   "name": "Kiosk Tab Rotator",
   "version": "1.0.0",
   "description": "Automatically rotate through your open tabs when idle — perfect for dashboards, kiosks, and digital signage displays.",
-  "permissions": ["tabs", "storage", "idle", "scripting"],
-  "host_permissions": ["<all_urls>"],
+  "permissions": ["storage", "idle", "activeTab"],
   "icons": {
     "16": "icon_16.png",
     "48": "icon_48.png",
