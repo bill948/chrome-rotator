@@ -1,6 +1,6 @@
-let lastActivity = Date.now();
 let config = { enabled: true, delay: 30, fullscreen: false };
-let rotationCount = 0; // Track number of rotations
+let rotationCount = 0;
+let lastRotation = 0;
 
 // Initial Config Load
 chrome.storage.local.get(['enabled', 'delay', 'fullscreen'], (data) => {
@@ -17,10 +17,8 @@ chrome.storage.onChanged.addListener((changes) => {
     handleWindowState();
 });
 
-// Activity message from content scripts
-chrome.runtime.onMessage.addListener((msg) => {
-    if (msg.type === "USER_ACTIVITY") lastActivity = Date.now();
-});
+// Idle detection
+chrome.idle.setDetectionInterval(15);
 
 // Periodically sync fullscreen setting with actual window state
 setInterval(async () => {
@@ -33,12 +31,6 @@ setInterval(async () => {
         }
     } catch (e) {}
 }, 2000);
-
-// Global Idle detection backup
-chrome.idle.setDetectionInterval(15);
-chrome.idle.onStateChanged.addListener((state) => {
-    if (state === "active") lastActivity = Date.now();
-});
 
 async function handleWindowState() {
     const win = await chrome.windows.getCurrent();
@@ -58,15 +50,13 @@ function updateBadge() {
 setInterval(async () => {
     if (!config.enabled) return;
 
-    const now = Date.now();
     const safeDelay = Math.min(Math.max(config.delay, 15), 300);
     const delayMs = safeDelay * 1000;
 
-    const idleState = await new Promise(res => chrome.idle.queryState(15, res));
+    const idleState = await new Promise(res => chrome.idle.queryState(safeDelay, res));
 
-    if (idleState === "active" || (now - lastActivity) < delayMs) {
-        return;
-    }
+    if (idleState === "active") return;
+    if (Date.now() - lastRotation < delayMs) return;
 
     const tabs = await chrome.tabs.query({ currentWindow: true, windowType: 'normal' });
     if (tabs.length <= 1) return;
@@ -78,17 +68,12 @@ setInterval(async () => {
     const nextTab = tabs[nextIndex];
 
     try {
-        // Increment rotation count
         rotationCount++;
-
-        // Switch to the next tab
         await chrome.tabs.update(nextTab.id, { active: true });
 
-        // Check if it's the 5th rotation
         if (rotationCount >= 5) {
             await chrome.tabs.reload(nextTab.id);
-            rotationCount = 0; // Reset counter
-            console.log("5th rotation reached: Page refreshed.");
+            rotationCount = 0;
         }
 
         if (config.fullscreen) {
@@ -97,9 +82,8 @@ setInterval(async () => {
                 await chrome.windows.update(win.id, { state: "fullscreen" });
             }
         }
+        lastRotation = Date.now();
     } catch (err) {
         console.error("Rotation error:", err);
     }
-
-    lastActivity = Date.now();
 }, 1000);

@@ -106,7 +106,5 @@ When submitting, Chrome Web Store will ask you to justify each permission:
 
 | Permission | Justification |
 |---|---|
-| `tabs` | Required to query open tabs in the current window and switch the active tab during rotation. |
 | `storage` | Required to persist user settings (enabled state, delay, fullscreen preference) across browser sessions. |
 | `idle` | Required to detect system-level idle state so rotation only occurs when the user is inactive. |
-| `activeTab` | Required to interact with the currently active tab when the user invokes the extension. |

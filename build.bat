@@ -8,7 +8,7 @@ if exist "%ZIP_NAME%" del "%ZIP_NAME%"
 
 :: Check required files exist
 set MISSING=0
-for %%f in (manifest.json background.js content.js popup.html popup.js kiosk_icon_128.png icon_48.png icon_16.png) do (
+for %%f in (manifest.json background.js popup.html popup.js kiosk_icon_128.png icon_48.png icon_16.png) do (
     if not exist "%%f" (
         echo ERROR: Missing required file: %%f
         set MISSING=1
@@ -21,7 +21,7 @@ if %MISSING%==1 (
 )
 
 :: Create zip using PowerShell (available on Windows 10+)
-powershell -NoProfile -Command "Compress-Archive -Path 'manifest.json','background.js','content.js','popup.html','popup.js','kiosk_icon_128.png','icon_48.png','icon_16.png' -DestinationPath '%ZIP_NAME%' -Force"
+powershell -NoProfile -Command "Compress-Archive -Path 'manifest.json','background.js','popup.html','popup.js','kiosk_icon_128.png','icon_48.png','icon_16.png' -DestinationPath '%ZIP_NAME%' -Force"
 
 if exist "%ZIP_NAME%" (
     echo.
